@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string.h>
 #include <vector>
+#include <chrono>
 
 using namespace std;
 
@@ -22,7 +23,6 @@ string readFile(const string &filename) {
 }
 
 void naive_search(const string &book, const string &findstr) {
-    cout << "Naive Search (searching for: " << findstr << "): " << endl;
     for (int i = 0; i < book.size(); i++) {
         if (book.substr(i, findstr.size()) == findstr) {
             cout << i << " ";
@@ -31,7 +31,6 @@ void naive_search(const string &book, const string &findstr) {
 }
 
 void find_search(const string &book, const string &findstr) {
-    cout << "Find Search (searching for: " << findstr << "): " << endl;
     int i = 0, last_i = 0;
     while (i < book.size()) {
         last_i = i;
@@ -44,7 +43,6 @@ void find_search(const string &book, const string &findstr) {
 }
 
 void strstr_search(const string &book, const string &findstr) {
-    cout << "Strstr Search (searching for: " << findstr << "): " << endl;
     const char* bookptr = book.c_str();
     const char* findptr = findstr.c_str();
     int offset = 0;
@@ -81,8 +79,8 @@ void prefix_search(const string &book, const string &findstr) {
     }
 }
 
-int mod_pow(int base, int exponent, int mod) {
-    int result = 1;
+long long mod_pow(long long base, long long exponent, long long mod) {
+    long long result = 1;
     base %= mod;
     while (exponent > 0) {
         if (exponent % 2 == 1)
@@ -93,9 +91,9 @@ int mod_pow(int base, int exponent, int mod) {
     return result;
 }
 
-int myhash(const string &s) {
-    int hash = 0;
-    int p_pow = 1;
+long long myhash(const string &s) {
+    long long hash = 0;
+    long long p_pow = 1;
     for (char c : s) {
         hash = (hash + (static_cast<unsigned char>(c) + 1) * p_pow) % 1000000007;
         p_pow = (p_pow * 257) % 1000000007;
@@ -104,25 +102,25 @@ int myhash(const string &s) {
 }
 
 void hash_search(const string &book, const string &sub) {
-    int n = book.length();
-    int m = sub.length();
-    int hashW = myhash(sub);
-    int hashS = myhash(book.substr(0, m));
+    long long n = book.length();
+    long long m = sub.length();
+    long long hashW = myhash(sub);
+    long long hashS = myhash(book.substr(0, m));
 
-    vector<int> p_pow(max(n, m));
+    vector<long long> p_pow(max(n, m));
     p_pow[0] = 1;
     for (int i = 1; i < p_pow.size(); ++i)
         p_pow[i] = (p_pow[i - 1] * 257) % 1000000007;
 
-    int inv_p = mod_pow(257, 1000000007 - 2, 1000000007);
+    long long inv_p = mod_pow(257, 1000000007 - 2, 1000000007);
 
     for (int i = 0; i <= n - m; ++i) {
         if (hashS == hashW && book.substr(i, m) == sub) {
             cout << i << " ";
         }
         if (i < n - m) {
-            const int old_char = static_cast<unsigned char>(book[i]) + 1;
-            const int new_char = static_cast<unsigned char>(book[i + m]) + 1;
+            const long long old_char = static_cast<unsigned char>(book[i]) + 1;
+            const long long new_char = static_cast<unsigned char>(book[i + m]) + 1;
 
             hashS = (hashS - old_char + 1000000007) % 1000000007;
             hashS = (hashS * inv_p) % 1000000007;
@@ -131,10 +129,45 @@ void hash_search(const string &book, const string &sub) {
     }
 }
 
+typedef void (*func) (const string&, const string&);
+struct analyze{
+    string name;
+    func search;
+};
+
+
 int main() {
     const string text = readFile("../books/Harry Potter and the Chamber of Secrets.txt");
-    const string strfind = "Harry";
-    hash_search(text, strfind);
+
+    analyze analyses[5] = {
+        {"Naive search", naive_search},
+        {"Find search", find_search},
+        {"Strstr search", strstr_search},
+        {"Prefix search", prefix_search},
+        {"Hash search", hash_search}
+    };
+    string finds[5] = {
+        "Harry",
+        "I dunno",
+        "What's up?",
+        "Hermione and Ron",
+        "said Professor McGonagall"
+    };
+
+    for(const string& findstr: finds){
+        for(const auto& [name, search]: analyses){
+            cout << name << " (searching for: " << findstr << "):" << endl;
+
+            auto start = chrono::high_resolution_clock::now();
+            search(text, findstr);
+            auto finish= chrono::high_resolution_clock::now();
+
+            auto duration = chrono::duration_cast<chrono::microseconds>(finish - start).count();
+
+            cout << endl << "Total time: " << duration << " ms" << endl;
+        }
+        cout << endl;
+    }
 
     system("pause");
 
