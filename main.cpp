@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <string.h>
+#include <cstring>
 #include <vector>
 #include <chrono>
 
@@ -31,7 +31,7 @@ void naive_search(const string &book, const string &findstr) {
 }
 
 void find_search(const string &book, const string &findstr) {
-    int i = 0, last_i = 0;
+    unsigned long long i = 0, last_i = 0;
     while (i < book.size()) {
         last_i = i;
         i = book.find(findstr, i) + 1;
@@ -45,13 +45,13 @@ void find_search(const string &book, const string &findstr) {
 void strstr_search(const string &book, const string &findstr) {
     const char* bookptr = book.c_str();
     const char* findptr = findstr.c_str();
-    int offset = 0;
+    unsigned long long offset = 0;
     while (true) {
         const char* pos = strstr(bookptr + offset, findptr);
         if (!pos) {
             break;
         }
-        const int found_pos = pos - bookptr;
+        const long long found_pos = pos - bookptr;
         cout << found_pos << " ";
         offset = found_pos + findstr.size();
     }
@@ -71,7 +71,7 @@ void prefix_search(const string &book, const string &findstr) {
             pi[i] = j;
         }
     }
-    int t_len = findstr.length();
+    const unsigned long long t_len = findstr.length();
     for (int i = 0; i < book.length(); i++) {
         if (pi[t_len + 1 + i] == t_len) {
             cout << i - t_len + 1 << " ";
@@ -79,7 +79,7 @@ void prefix_search(const string &book, const string &findstr) {
     }
 }
 
-long long mod_pow(long long base, long long exponent, long long mod) {
+long long mod_pow(long long base, long long exponent, const long long mod) {
     long long result = 1;
     base %= mod;
     while (exponent > 0) {
@@ -94,7 +94,7 @@ long long mod_pow(long long base, long long exponent, long long mod) {
 long long myhash(const string &s) {
     long long hash = 0;
     long long p_pow = 1;
-    for (char c : s) {
+    for (const char c : s) {
         hash = (hash + (static_cast<unsigned char>(c) + 1) * p_pow) % 1000000007;
         p_pow = (p_pow * 257) % 1000000007;
     }
@@ -102,9 +102,9 @@ long long myhash(const string &s) {
 }
 
 void hash_search(const string &book, const string &sub) {
-    long long n = book.length();
-    long long m = sub.length();
-    long long hashW = myhash(sub);
+    const unsigned long long n = book.length();
+    const unsigned long long m = sub.length();
+    const long long hashW = myhash(sub);
     long long hashS = myhash(book.substr(0, m));
 
     vector<long long> p_pow(max(n, m));
@@ -112,7 +112,7 @@ void hash_search(const string &book, const string &sub) {
     for (int i = 1; i < p_pow.size(); ++i)
         p_pow[i] = (p_pow[i - 1] * 257) % 1000000007;
 
-    long long inv_p = mod_pow(257, 1000000007 - 2, 1000000007);
+    const long long inv_p = mod_pow(257, 1000000007 - 2, 1000000007);
 
     for (int i = 0; i <= n - m; ++i) {
         if (hashS == hashW && book.substr(i, m) == sub) {
@@ -162,7 +162,7 @@ int main() {
             search(text, findstr);
             auto finish= chrono::high_resolution_clock::now();
 
-            auto duration = chrono::duration_cast<chrono::microseconds>(finish - start).count();
+            const auto duration = chrono::duration_cast<chrono::microseconds>(finish - start).count();
 
             cout << endl << "Total time: " << duration << " ms" << endl;
         }
